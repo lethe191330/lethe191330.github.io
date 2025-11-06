@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级数学函数图像绘制器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-panel {
+            flex: 1;
+            min-width: 500px;
+            max-width: 600px;
+        }
+        
+        .graph-panel {
+            flex: 2;
+        }
+        
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, button, select {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        input {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #ff7e5f;
+            box-shadow: 0 0 0 2px rgba(255, 126, 95, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .function-builder {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .builder-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .builder-title h3 {
+            color: #ff7e5f;
+        }
+        
+        .builder-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .tab.active {
+            background: #ff7e5f;
+        }
+        
+        .symbols-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .symbol-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+        }
+        
+        .symbol-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .func-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .func-desc {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .function-templates {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        
+        .template-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-align: center;
+        }
+        
+        .template-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .graph-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+        }
+        
+        #graphCanvas {
+            width: 100%;
+            height: 600px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            display: block;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .range-controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .range-controls .input-group {
+            flex: 1;
+        }
+        
+        .function-list {
+            margin-top: 20px;
+        }
+        
+        .function-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .function-item input {
+            flex: 1;
+        }
+        
+        .function-item .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .function-item .remove-btn {
+            background: #ff6b6b;
+            padding: 8px 12px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .input-panel, .graph-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .symbols-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>高级数学函数图像绘制器</h1>
+            <p class="subtitle">可视化构建复杂数学函数，实时生成对应的函数图像</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-panel">
+                <div class="input-section">
+                    <div class="function-list" id="functionList">
+                        <div class="function-item">
+                            <input type="text" class="function-input" placeholder="例如：sin(x)*x^2 或 log(x, 2)" value="sin(x)*x^2">
+                            <input type="color" class="color-picker" value="#ff7e5f">
+                            <button class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    
+                    <button id="addFunctionBtn" style="width: 100%; margin-top: 10px;">+ 添加函数</button>
+                    
+                    <div class="range-controls">
+                        <div class="input-group">
+                            <label for="xMin">X轴范围（最小值）</label>
+                            <input type="number" id="xMin" value="-10">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="xMax">X轴范围（最大值）</label>
+                            <input type="number" id="xMax" value="10">
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="plotButton">绘制图像</button>
+                        <button id="clearButton">清除图像</button>
+                    </div>
+                    
+                    <div class="error-message" id="errorMessage"></div>
+                </div>
+                
+                <div class="function-builder">
+                    <div class="builder-title">
+                        <h3>函数构建器</h3>
+                    </div>
+                    
+                    <div class="builder-tabs">
+                        <div class="tab active" data-tab="basic">基础运算</div>
+                        <div class="tab" data-tab="trigonometric">三角函数</div>
+                        <div class="tab" data-tab="exponential">指数与对数</div>
+                        <div class="tab" data-tab="hyperbolic">双曲函数</div>
+                        <div class="tab" data-tab="special">特殊函数</div>
+                        <div class="tab" data-tab="constants">常数</div>
+                        <div class="tab" data-tab="advanced">高级运算</div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="basicPanel">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="+">
+                                <div class="func-name">+</div>
+                                <div class="func-desc">加法</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="-">
+                                <div class="func-name">-</div>
+                                <div class="func-desc">减法</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="*">
+                                <div class="func-name">×</div>
+                                <div class="func-desc">乘法</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="/">
+                                <div class="func-name">÷</div>
+                                <div class="func-desc">除法</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="^">
+                                <div class="func-name">^</div>
+                                <div class="func-desc">幂运算</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="(">
+                                <div class="func-name">(</div>
+                                <div class="func-desc">左括号</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol=")">
+                                <div class="func-name">)</div>
+                                <div class="func-desc">右括号</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol=".">
+                                <div class="func-name">.</div>
+                                <div class="func-desc">小数点</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="x">
+                                <div class="func-name">x</div>
+                                <div class="func-desc">变量</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="[backspace]">
+                                <div class="func-name">⌫</div>
+                                <div class="func-desc">退格</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="trigonometricPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="sin(">
+                                <div class="func-name">sin</div>
+                                <div class="func-desc">正弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="cos(">
+                                <div class="func-name">cos</div>
+                                <div class="func-desc">余弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="tan(">
+                                <div class="func-name">tan</div>
+                                <div class="func-desc">正切函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="asin(">
+                                <div class="func-name">asin</div>
+                                <div class="func-desc">反正弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="acos(">
+                                <div class="func-name">acos</div>
+                                <div class="func-desc">反余弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="atan(">
+                                <div class="func-name">atan</div>
+                                <div class="func-desc">反正切函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="atan2(">
+                                <div class="func-name">atan2</div>
+                                <div class="func-desc">四象限反正切</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="csc(">
+                                <div class="func-name">csc</div>
+                                <div class="func-desc">余割函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="sec(">
+                                <div class="func-name">sec</div>
+                                <div class="func-desc">正割函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="cot(">
+                                <div class="func-name">cot</div>
+                                <div class="func-desc">余切函数</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="exponentialPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="exp(">
+                                <div class="func-name">exp</div>
+                                <div class="func-desc">指数函数 e^x</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="log(">
+                                <div class="func-name">log</div>
+                                <div class="func-desc">对数函数(底数10)</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="ln(">
+                                <div class="func-name">ln</div>
+                                <div class="func-desc">自然对数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="log(">
+                                <div class="func-name">log(x,y)</div>
+                                <div class="func-desc">以y为底x的对数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="sqrt(">
+                                <div class="func-name">sqrt</div>
+                                <div class="func-desc">平方根函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="nthRoot(">
+                                <div class="func-name">nthRoot</div>
+                                <div class="func-desc">n次方根</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="hyperbolicPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="sinh(">
+                                <div class="func-name">sinh</div>
+                                <div class="func-desc">双曲正弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="cosh(">
+                                <div class="func-name">cosh</div>
+                                <div class="func-desc">双曲余弦函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="tanh(">
+                                <div class="func-name">tanh</div>
+                                <div class="func-desc">双曲正切函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="asinh(">
+                                <div class="func-name">asinh</div>
+                                <div class="func-desc">反双曲正弦</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="acosh(">
+                                <div class="func-name">acosh</div>
+                                <div class="func-desc">反双曲余弦</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="atanh(">
+                                <div class="func-name">atanh</div>
+                                <div class="func-desc">反双曲正切</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="specialPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="abs(">
+                                <div class="func-name">abs</div>
+                                <div class="func-desc">绝对值函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="gamma(">
+                                <div class="func-name">gamma</div>
+                                <div class="func-desc">伽马函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="erf(">
+                                <div class="func-name">erf</div>
+                                <div class="func-desc">误差函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="floor(">
+                                <div class="func-name">floor</div>
+                                <div class="func-desc">向下取整</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="ceil(">
+                                <div class="func-name">ceil</div>
+                                <div class="func-desc">向上取整</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="round(">
+                                <div class="func-name">round</div>
+                                <div class="func-desc">四舍五入</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="sign(">
+                                <div class="func-name">sign</div>
+                                <div class="func-desc">符号函数</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="constantsPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="pi">
+                                <div class="func-name">π</div>
+                                <div class="func-desc">圆周率</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="e">
+                                <div class="func-name">e</div>
+                                <div class="func-desc">自然常数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="2">
+                                <div class="func-name">2</div>
+                                <div class="func-desc">数字2</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="3">
+                                <div class="func-name">3</div>
+                                <div class="func-desc">数字3</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="5">
+                                <div class="func-name">5</div>
+                                <div class="func-desc">数字5</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="10">
+                                <div class="func-name">10</div>
+                                <div class="func-desc">数字10</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="0.5">
+                                <div class="func-name">½</div>
+                                <div class="func-desc">1/2</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="0.25">
+                                <div class="func-name">¼</div>
+                                <div class="func-desc">1/4</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="0.1">
+                                <div class="func-name">0.1</div>
+                                <div class="func-desc">十分之一</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="symbols-panel" id="advancedPanel" style="display: none;">
+                        <div class="symbols-grid">
+                            <div class="symbol-btn" data-symbol="max(">
+                                <div class="func-name">max</div>
+                                <div class="func-desc">最大值函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="min(">
+                                <div class="func-name">min</div>
+                                <div class="func-desc">最小值函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="mod(">
+                                <div class="func-name">mod</div>
+                                <div class="func-desc">取模运算</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="factorial(">
+                                <div class="func-name">!</div>
+                                <div class="func-desc">阶乘函数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="combinations(">
+                                <div class="func-name">C(n,k)</div>
+                                <div class="func-desc">组合数</div>
+                            </div>
+                            <div class="symbol-btn" data-symbol="permutations(">
+                                <div class="func-name">P(n,k)</div>
+                                <div class="func-desc">排列数</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="function-templates">
+                    <h3>常用函数模板</h3>
+                    <div class="templates-grid">
+                        <div class="template-item" data-expr="sin(x)">正弦函数</div>
+                        <div class="template-item" data-expr="cos(x)">余弦函数</div>
+                        <div class="template-item" data-expr="x^2">二次函数</div>
+                        <div class="template-item" data-expr="x^3 - 3*x^2 + 2">三次函数</div>
+                        <div class="template-item" data-expr="exp(x)">指数函数</div>
+                        <div class="template-item" data-expr="log(x)">常用对数</div>
+                        <div class="template-item" data-expr="sin(x)/x">Sinc函数</div>
+                        <div class="template-item" data-expr="sqrt(x)">平方根函数</div>
+                        <div class="template-item" data-expr="abs(x)">绝对值函数</div>
+                        <div class="template-item" data-expr="tan(x)">正切函数</div>
+                        <div class="template-item" data-expr="sin(x)*cos(2*x)">复合函数</div>
+                        <div class="template-item" data-expr="x*sin(1/x)">振荡函数</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="graph-panel">
+                <div class="graph-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        const plotButton = document.getElementById('plotButton');
+        const clearButton = document.getElementById('clearButton');
+        const errorMessage = document.getElementById('errorMessage');
+        const xMinInput = document.getElementById('xMin');
+        const xMaxInput = document.getElementById('xMax');
+        const addFunctionBtn = document.getElementById('addFunctionBtn');
+        const functionList = document.getElementById('functionList');
+        
+        // 标签页元素
+        const tabs = document.querySelectorAll('.tab');
+        const panels = document.querySelectorAll('.symbols-panel');
+        
+        // 模板元素
+        const templateItems = document.querySelectorAll('.template-item');
+        
+        // 符号按钮
+        const symbolBtns = document.querySelectorAll('.symbol-btn');
+        
+        // 颜色选项
+        const colors = ['#ff7e5f', '#4ecdc4', '#45b7d1', '#96ceb4', '#f8b500', '#ff6b6b', '#a8e6cf', '#dcedc1', '#ffd3b6', '#ffaaa5'];
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            drawGrid();
+        }
+        
+        // 初始调整Canvas尺寸
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 绘制坐标网格
+        function drawGrid() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 50; // 每单位50像素
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制网格背景
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制网格线
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // 垂直线
+            for (let x = centerX % scale; x < width; x += scale) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // 水平线
+            for (let y = centerY % scale; y < height; y += scale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制坐标轴
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 2;
+            
+            // X轴
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+            
+            // Y轴
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // 绘制刻度
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            // X轴刻度
+            for (let x = centerX + scale; x < width; x += scale) {
+                const value = (x - centerX) / scale;
+                ctx.fillText(value, x, centerY + 5);
+            }
+            
+            for (let x = centerX - scale; x > 0; x -= scale) {
+                const value = (x - centerX) / scale;
+                ctx.fillText(value, x, centerY + 5);
+            }
+            
+            // Y轴刻度
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            for (let y = centerY + scale; y < height; y += scale) {
+                const value = -(y - centerY) / scale;
+                ctx.fillText(value, centerX - 5, y);
+            }
+            
+            for (let y = centerY - scale; y > 0; y -= scale) {
+                const value = -(y - centerY) / scale;
+                ctx.fillText(value, centerX - 5, y);
+            }
+            
+            // 原点标记
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.fillText('O', centerX - 5, centerY + 5);
+        }
+        
+        // 绘制函数图像
+        function plotFunction(expr, color) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 50; // 每单位50像素
+            
+            // 获取X轴范围
+            const xMin = parseFloat(xMinInput.value) || -10;
+            const xMax = parseFloat(xMaxInput.value) || 10;
+            
+            try {
+                // 编译表达式
+                const compiledExpr = math.compile(expr);
+                
+                // 设置绘图样式
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                let isFirstPoint = true;
+                let lastY = null;
+                
+                // 遍历所有x值
+                for (let pixelX = 0; pixelX < width; pixelX++) {
+                    const x = xMin + (pixelX / width) * (xMax - xMin);
+                    
+                    try {
+                        // 计算y值
+                        const y = compiledExpr.evaluate({x: x});
+                        
+                        // 转换为像素坐标
+                        const pixelY = centerY - (y * scale) * (height / (scale * (xMax - xMin)));
+                        
+                        // 检查是否为有效数值
+                        if (isFinite(pixelY) && Math.abs(pixelY) < height * 10) {
+                            if (isFirstPoint) {
+                                ctx.moveTo(pixelX, pixelY);
+                                isFirstPoint = false;
+                            } else {
+                                // 检查是否有间断点
+                                if (lastY !== null && Math.abs(pixelY - lastY) < height / 2) {
+                                    ctx.lineTo(pixelX, pixelY);
+                                } else {
+                                    ctx.moveTo(pixelX, pixelY);
+                                }
+                            }
+                            lastY = pixelY;
+                        } else {
+                            isFirstPoint = true;
+                            lastY = null;
+                        }
+                    } catch (e) {
+                        // 如果计算错误，移动到下一个点
+                        isFirstPoint = true;
+                        lastY = null;
+                    }
+                }
+                
+                ctx.stroke();
+                errorMessage.style.display = 'none';
+            } catch (error) {
+                errorMessage.textContent = `错误: ${error.message}`;
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // 绘制所有函数
+        function plotAllFunctions() {
+            drawGrid();
+            
+            const functionItems = functionList.querySelectorAll('.function-item');
+            functionItems.forEach(item => {
+                const input = item.querySelector('.function-input');
+                const colorPicker = item.querySelector('.color-picker');
+                
+                const expr = input.value.trim();
+                const color = colorPicker.value;
+                
+                if (expr) {
+                    plotFunction(expr, color);
+                }
+            });
+        }
+        
+        // 绘制按钮点击事件
+        plotButton.addEventListener('click', plotAllFunctions);
+        
+        // 清除按钮点击事件
+        clearButton.addEventListener('click', function() {
+            drawGrid();
+        });
+        
+        // 添加函数按钮点击事件
+        addFunctionBtn.addEventListener('click', function() {
+            const newFunctionItem = document.createElement('div');
+            newFunctionItem.className = 'function-item';
+            
+            const colorIndex = functionList.children.length % colors.length;
+            
+            newFunctionItem.innerHTML = `
+                <input type="text" class="function-input" placeholder="例如：sin(x)*x^2 或 log(x, 2)">
+                <input type="color" class="color-picker" value="${colors[colorIndex]}">
+                <button class="remove-btn">×</button>
+            `;
+            
+            functionList.appendChild(newFunctionItem);
+            
+            // 添加删除按钮事件
+            newFunctionItem.querySelector('.remove-btn').addEventListener('click', function() {
+                if (functionList.children.length > 1) {
+                    newFunctionItem.remove();
+                }
+            });
+        });
+        
+        // 标签页切换
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // 更新活动标签
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 显示对应面板
+                panels.forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                document.getElementById(tabName + 'Panel').style.display = 'block';
+            });
+        });
+        
+        // 符号按钮点击事件
+        symbolBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const symbol = this.getAttribute('data-symbol');
+                const activeInput = document.querySelector('.function-input:focus') || 
+                                  functionList.querySelector('.function-input');
+                
+                if (symbol === '[backspace]') {
+                    // 退格功能
+                    activeInput.value = activeInput.value.slice(0, -1);
+                } else {
+                    // 插入符号
+                    activeInput.value += symbol;
+                }
+                
+                // 聚焦输入框
+                activeInput.focus();
+            });
+        });
+        
+        // 模板函数点击事件
+        templateItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const expr = this.getAttribute('data-expr');
+                const activeInput = document.querySelector('.function-input:focus') || 
+                                  functionList.querySelector('.function-input');
+                
+                activeInput.value = expr;
+                activeInput.focus();
+                
+                plotAllFunctions();
+            });
+        });
+        
+        // 初始绘制一个示例函数
+        window.addEventListener('load', function() {
+            plotAllFunctions();
+            
+            // 为初始删除按钮添加事件
+            functionList.querySelector('.remove-btn').addEventListener('click', function() {
+                if (functionList.children.length > 1) {
+                    this.parentElement.remove();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
